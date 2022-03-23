@@ -6,11 +6,11 @@ import "time"
 type User struct {
 	ID             int
 	Name           string
-	Occupation     string
-	Email          string
+	Gender         string
+	Email		   string
+	PhoneNumber    string
+	Alamat         string
 	PasswordHash   string
-	AvatarFileName string
-	Role           string
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }
