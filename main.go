@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"ticketing-payment-handler/handler"
+	"ticketing-payment-handler/ticket"
 	"ticketing-payment-handler/user"
 
 	"github.com/gin-contrib/cors"
@@ -22,8 +23,12 @@ func main() {
 	}
 
 	userRepository := user.NewRepository(db)
+	ticketRepository := ticket.NewRepository(db)
+
 
 	userService := user.NewService(userRepository)
+	ticketService := ticket.NewService(ticketRepository)
+
 
 	// user, _ := userService.GetUserByID(1)
 
@@ -41,6 +46,8 @@ func main() {
 	// }
 
 	userHandler := handler.NewUserHandler(userService)
+	ticketHandler := handler.NewTicketHandler(ticketService)
+
 
 	router := gin.Default()
 	router.Use(cors.Default())
@@ -48,6 +55,8 @@ func main() {
 	api := router.Group("/api/v1")
 
 	api.POST("/users", userHandler.RegisterUser)
+
+	api.GET("/tickets", ticketHandler.GetTickets)
 
 	router.Run()
 }
