@@ -13,13 +13,12 @@ type Ticket struct {
 	ShortDescription string
 	qty 		 	 int
 	price            int
-	feeFinal		 int
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
 }
 
-// priceFormatIDR format goal amount
-func (t Ticket) GoalAmountFormatIDR() string {
+// priceFormatIDR format price
+func (t Ticket) priceFormatIDR() string {
 	ac := accounting.Accounting{Symbol: "Rp", Precision: 2, Thousand: ".", Decimal: ","}
 	return ac.FormatMoney(t.price)
 }

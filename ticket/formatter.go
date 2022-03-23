@@ -17,7 +17,6 @@ func FormatTicket(ticket Ticket) TicketFormatter {
 	ticketFormatter.Name = ticket.Name
 	ticketFormatter.ShortDescription = ticket.ShortDescription
 	ticketFormatter.Price = ticket.price
-	ticketFormatter.FeeFinal = ticket.feeFinal
 
 	return ticketFormatter
 }
