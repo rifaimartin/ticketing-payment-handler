@@ -12,7 +12,6 @@ package user:
 
 - go gin > for handler http request
 - go orm > for accesing database
-- go multitemplate
 - jwt go > for generate token and handle security
 
 

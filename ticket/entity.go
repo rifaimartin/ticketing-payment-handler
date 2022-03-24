@@ -11,7 +11,8 @@ type Ticket struct {
 	ID               int
 	Name             string
 	ShortDescription string
-	qty 		 	 int
+	imageUrl 		 string
+	Qty 		 	 int
 	price            int
 	CreatedAt        time.Time
 	UpdatedAt        time.Time

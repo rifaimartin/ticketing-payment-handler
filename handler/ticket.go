@@ -31,3 +31,29 @@ func (h *ticketHandler) GetTickets(c *gin.Context) {
 	response := helper.APIResponse("List of tickets", http.StatusOK, "success", ticket.FormatTickets(tickets))
 	c.JSON(http.StatusOK, response)
 }
+
+
+func (h *ticketHandler) CreateTicket(c *gin.Context) {
+	var input ticket.CreateTicketInput
+
+	err := c.ShouldBindJSON(&input)
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+
+		errorMessage := gin.H{"errors": errors}
+
+		response := helper.APIResponse("failed to create ticket", http.StatusUnprocessableEntity, "error", errorMessage)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	newTicket, err := h.service.CreateTicket(input)
+	if err != nil {
+		response := helper.APIResponse("Failed to create campaign", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	response := helper.APIResponse("Success to create campaign", http.StatusOK, "success", ticket.FormatTicket(newTicket))
+	c.JSON(http.StatusOK, response)
+}

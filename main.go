@@ -57,6 +57,8 @@ func main() {
 	api.POST("/users", userHandler.RegisterUser)
 
 	api.GET("/tickets", ticketHandler.GetTickets)
+	api.POST("/tickets", ticketHandler.CreateTicket)
+
 
 	router.Run()
 }
