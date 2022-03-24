@@ -1,6 +1,8 @@
 package transaction
 
 import (
+	"fmt"
+	"strconv"
 	"ticketing-payment-handler/ticket"
 )
 
@@ -13,6 +15,7 @@ type service struct {
 type Service interface {
 	CreateTransaction(input CreateTransactionInput) (Transaction, error)
 	GetTransactionsByUserID(userID int) ([]Transaction, error)
+	ProcessPayment(input TransactionNotificationInput) error
 }
 
 //NewService newservice
@@ -46,4 +49,46 @@ func (s *service) GetTransactionsByUserID(userID int) ([]Transaction, error) {
 	}
 
 	return transactions, nil
+}
+
+func (s *service) ProcessPayment(input TransactionNotificationInput) error {
+	transaction_id, _ := strconv.Atoi(input.OrderID)
+	
+	fmt.Println("i am here")
+	transaction, err := s.repository.GetByID(transaction_id)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("you here")
+	if input.PaymentType == "credit_card" && input.TransactionStatus == "capture" {
+		transaction.Status = "paid"
+	} else if input.TransactionStatus == "settlement" {
+		transaction.Status = "paid"
+	} else if input.TransactionStatus == "deny" || input.TransactionStatus == "expire" || input.TransactionStatus == "cancel" {
+		transaction.Status = "cancelled"
+	}
+
+	updatedTransaction, err := s.repository.Update(transaction)
+	if err != nil {
+		return err
+	}
+
+	ticket, err := s.ticketRepository.FindByID(updatedTransaction.TicketID)
+	if err != nil {
+		return err
+	}
+
+	if updatedTransaction.Status == "paid" {
+		ticket.Qty = ticket.Qty - 1
+
+		_, err := s.ticketRepository.Update(ticket)
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return nil
+
 }
