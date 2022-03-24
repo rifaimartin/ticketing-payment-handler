@@ -49,11 +49,11 @@ func (h *ticketHandler) CreateTicket(c *gin.Context) {
 
 	newTicket, err := h.service.CreateTicket(input)
 	if err != nil {
-		response := helper.APIResponse("Failed to create campaign", http.StatusBadRequest, "error", nil)
+		response := helper.APIResponse("Failed to create ticket", http.StatusBadRequest, "error", nil)
 		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
-	response := helper.APIResponse("Success to create campaign", http.StatusOK, "success", ticket.FormatTicket(newTicket))
+	response := helper.APIResponse("Success to create ticket", http.StatusOK, "success", ticket.FormatTicket(newTicket))
 	c.JSON(http.StatusOK, response)
 }

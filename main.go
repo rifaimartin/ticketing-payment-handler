@@ -70,6 +70,7 @@ func main() {
 	api.GET("/tickets", ticketHandler.GetTickets)
 	api.POST("/tickets", ticketHandler.CreateTicket)
 
+	api.GET("transactions", authMiddleware(authService, userService), transactionHandler.GetUserTransactions)
 	api.POST("transactions", authMiddleware(authService, userService), transactionHandler.CreateTransaction)
 
 
