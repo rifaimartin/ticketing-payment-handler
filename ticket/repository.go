@@ -7,6 +7,8 @@ import (
 //Repository interface
 type Repository interface {
 	FindAll() ([]Ticket, error)
+	Save(ticket Ticket) (Ticket, error)
+
 }
 type repository struct {
 	db *gorm.DB
@@ -27,3 +29,11 @@ func (r *repository) FindAll() ([]Ticket, error) {
 	return tickets, nil
 }
 
+func (r *repository) Save(ticket Ticket) (Ticket, error) {
+	err := r.db.Create(&ticket).Error
+	if err != nil {
+		return ticket, err
+	}
+
+	return ticket, nil
+}

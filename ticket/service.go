@@ -3,6 +3,7 @@ package ticket
 //Service interface
 type Service interface {
 	GetTickets(userID int) ([]Ticket, error)
+	CreateTicket(input CreateTicketInput) (Ticket, error)
 }
 
 type service struct {
@@ -30,4 +31,19 @@ func (s *service) GetTickets(userID int) ([]Ticket, error) {
 	}
 
 	return tickets, nil
+}
+
+func (s *service) CreateTicket(input CreateTicketInput) (Ticket, error) {
+	ticket := Ticket{}
+	ticket.Name = input.Name
+	ticket.ShortDescription = input.ShortDescription
+	ticket.Qty = input.Qty
+	ticket.price = input.Price
+
+	newTicket, err := s.repository.Save(ticket)
+	if err != nil {
+		return newTicket, err
+	}
+
+	return newTicket, nil
 }
