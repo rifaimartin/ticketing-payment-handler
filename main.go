@@ -2,10 +2,18 @@ package main
 
 import (
 	"log"
+	"ticketing-payment-handler/auth"
 	"ticketing-payment-handler/handler"
+	"ticketing-payment-handler/helper"
 	"ticketing-payment-handler/ticket"
+	"ticketing-payment-handler/transaction"
 	"ticketing-payment-handler/user"
 
+	"fmt"
+	"net/http"
+	"strings"
+
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-contrib/cors"
 
 	"github.com/gin-gonic/gin"
@@ -24,10 +32,12 @@ func main() {
 
 	userRepository := user.NewRepository(db)
 	ticketRepository := ticket.NewRepository(db)
-
+	transactionRepository := transaction.NewRepository(db)
 
 	userService := user.NewService(userRepository)
 	ticketService := ticket.NewService(ticketRepository)
+	authService := auth.NewService()
+	transactionService := transaction.NewService(transactionRepository, ticketRepository)
 
 
 	// user, _ := userService.GetUserByID(1)
@@ -45,9 +55,9 @@ func main() {
 	// 	fmt.Println("INVALID")
 	// }
 
-	userHandler := handler.NewUserHandler(userService)
+	userHandler := handler.NewUserHandler(userService, authService)
 	ticketHandler := handler.NewTicketHandler(ticketService)
-
+	transactionHandler := handler.NewTransactionHandler(transactionService)
 
 	router := gin.Default()
 	router.Use(cors.Default())
@@ -55,12 +65,62 @@ func main() {
 	api := router.Group("/api/v1")
 
 	api.POST("/users", userHandler.RegisterUser)
+	api.POST("/sessions", userHandler.Login)
 
 	api.GET("/tickets", ticketHandler.GetTickets)
 	api.POST("/tickets", ticketHandler.CreateTicket)
+
+	api.POST("transactions", authMiddleware(authService, userService), transactionHandler.CreateTransaction)
 
 
 	router.Run()
 }
 
+
+func authMiddleware(authService auth.Service, userService user.Service) gin.HandlerFunc {
+
+	return func(c *gin.Context) {
+		authHeader := c.GetHeader("Authorization")
+
+		if !strings.Contains(authHeader, "Bearer") {
+			fmt.Println("Bearer empity")
+			response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error", nil)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			return
+		}
+
+		// split by space example Bearer = Token
+		tokenString := ""
+		arrayToken := strings.Split(authHeader, " ")
+		if len(arrayToken) == 2 {
+			tokenString = arrayToken[1]
+		}
+
+		token, err := authService.ValidateToken(tokenString)
+		if err != nil {
+			response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error", nil)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			return
+		}
+
+		claim, ok := token.Claims.(jwt.MapClaims)
+		if !ok || !token.Valid {
+			response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error", nil)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			return
+		}
+
+		userID := int(claim["user_id"].(float64))
+
+		user, err := userService.GetUserByID(userID)
+		if err != nil {
+			response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error", nil)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			return
+		}
+
+		// context currentUser
+		c.Set("currentUser", user)
+	}
+}
 
